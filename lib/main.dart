@@ -19,21 +19,21 @@ class MyAppState extends State<MyApp> with SingleTickerProviderStateMixin { //Si
     animationController = AnimationController(
       duration: Duration(milliseconds: 5000), vsync: this); //needs two args, time of anim and vsync prevents bg animations from consuming resources 
     
-    animation = Tween(begin: 0.0, end: 500.0).animate(animationController) // Tween = stateless obj, takes begin and end args, covers range of animation
-    ..addListener(() { //.. dart notation chains method onto result of previous method ; 
-      setState((){}); // ensures state changes with passing of single frame (avg Flutter app == 60 fps)
+    animation = Tween(begin: 0.0, end: 500.0).animate(animationController); // Tween = stateless obj, takes begin and end args, covers range of animation
+    animation.addStatusListener((status){
+      if (status == AnimationStatus.completed) {
+        animationController.reverse();
+      } else if (status == AnimationStatus.dismissed) {
+        animationController.forward();
+      }
     });
-    animationController.repeat(); //.forward() starts animation
+    animationController.forward(); //.forward() starts animation
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        height: animation.value,
-        width: animation.value,
-        child: FlutterLogo(),
-      ),
+    return LogoAnimation(
+      animation: animation,
     );
   }
 
@@ -41,5 +41,22 @@ class MyAppState extends State<MyApp> with SingleTickerProviderStateMixin { //Si
   void dispose() {
     animationController.dispose();
     super.dispose();
+  }
+}
+
+class LogoAnimation extends AnimatedWidget { //separate widget code from animation code
+  LogoAnimation({Key key, Animation animation}) // constructor takes in new args
+  : super(key: key, listenable: animation);
+
+  @override
+  Widget build(BuildContext context) {
+    Animation animation = listenable;
+    return Center(
+      child: Container(
+        height: animation.value,
+        width: animation.value,
+        child: FlutterLogo(),
+      ),
+    );
   }
 }
